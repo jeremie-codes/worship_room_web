@@ -3,8 +3,8 @@
 <div id="{{ $id }}" class="fixed inset-0 hidden z-50 overflow-y-auto overflow-x-hidden" aria-modal="true" role="dialog">
     <div class="min-h-screen flex items-center justify-center p-4">
         <!-- Overlay -->
-        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="document.getElementById('{{ $id }}').classList.remove('flex'); document.getElementById('{{ $id }}').classList.add('hidden')"></div>
-        
+        <div class="fixed inset-0 bg-black opacity-70 transition-opacity" onclick="document.getElementById('{{ $id }}').classList.remove('flex'); document.getElementById('{{ $id }}').classList.add('hidden')"></div>
+
         <!-- Modal content -->
         <div class="bg-white rounded-lg shadow-xl z-10 w-full max-w-md md:max-w-lg lg:max-w-xl relative transform transition-all">
             <!-- Modal header -->
@@ -16,7 +16,7 @@
                     </svg>
                 </button>
             </div>
-            
+
             <!-- Modal body -->
             <div class="p-6">
                 {{ $slot }}

@@ -22,6 +22,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Congés
     Route::resource('conges', CongeController::class);
+    Route::get('conge/planning', [CongeController::class, 'planning'])->name('conges.planning');
+    Route::get('conge/attribuer', [CongeController::class, 'attribuer'])->name('conges.attribution');;
     Route::post('conges/{conge}/approve', [CongeController::class, 'approve'])->name('conges.approve');
     Route::post('conges/{conge}/reject', [CongeController::class, 'reject'])->name('conges.reject');
 

@@ -1,4 +1,4 @@
-<div class="overflow-hidden">
+<div class="overflow-y-hidden overflow-x-scroll">
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
             <tr>

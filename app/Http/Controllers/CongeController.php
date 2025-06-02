@@ -13,6 +13,18 @@ class CongeController extends Controller
         return view('conges.index', compact('conges'));
     }
 
+    public function planning()
+    {
+        $conges = Conge::with('employe')->paginate(10);
+        return view('conges.planning', compact('conges'));
+    }
+
+    public function attribuer()
+    {
+        $conges = Conge::with('employe')->paginate(10);
+        return view('conges.attribuer', compact('conges'));
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

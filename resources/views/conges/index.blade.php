@@ -2,9 +2,26 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">Gestion des Congés</h1>
-        <p class="text-gray-600">Gérez les demandes et les approbations de congés</p>
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Gestion des Congés</h1>
+            <p class="text-gray-600">Gérez les demandes et les approbations de congés</p>
+        </div>
+
+        <div class="flex items-center gap-x-4">
+            <a href="{{ route('conges.planning') }}" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 text-white rounded">
+                {{-- <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg> --}}
+                Planning
+            </a>
+            <a href="{{ route('conges.attribution') }}" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 text-white rounded">
+                {{-- <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg> --}}
+                Attribuer
+            </a>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -59,7 +76,7 @@
                     <div class="w-full bg-gray-200 rounded-full h-2.5">
                         <div class="bg-blue-600 h-2.5 rounded-full" style="width: 72%"></div>
                     </div>
-                    
+
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">RTT</span>
                         <span class="font-medium">5 jours restants</span>
@@ -67,7 +84,7 @@
                     <div class="w-full bg-gray-200 rounded-full h-2.5">
                         <div class="bg-green-600 h-2.5 rounded-full" style="width: 45%"></div>
                     </div>
-                    
+
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Congés exceptionnels</span>
                         <span class="font-medium">3 jours restants</span>
@@ -75,7 +92,7 @@
                     <div class="w-full bg-gray-200 rounded-full h-2.5">
                         <div class="bg-amber-600 h-2.5 rounded-full" style="width: 100%"></div>
                     </div>
-                    
+
                     <div class="border-t pt-4 mt-4">
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-medium text-gray-800">Consommés cette année</span>
@@ -85,7 +102,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Tableau des congés -->
         <div class="lg:col-span-2">
             <!-- Onglets -->
@@ -105,7 +122,7 @@
                     </li>
                 </ul>
             </div>
-            
+
             <!-- Tableau des congés en attente -->
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
                 <div class="overflow-x-auto">
@@ -119,7 +136,7 @@
                             <x-table.heading>Motif</x-table.heading>
                             <x-table.heading>Actions</x-table.heading>
                         </x-slot>
-                        
+
                         <x-table.row>
                             <x-table.cell>
                                 <div class="flex items-center">
@@ -154,7 +171,7 @@
                                 </div>
                             </x-table.cell>
                         </x-table.row>
-                        
+
                         <x-table.row>
                             <x-table.cell>
                                 <div class="flex items-center">
@@ -189,7 +206,7 @@
                                 </div>
                             </x-table.cell>
                         </x-table.row>
-                        
+
                         <x-table.row>
                             <x-table.cell>
                                 <div class="flex items-center">
@@ -242,7 +259,7 @@
                         <div class="bg-white p-2 text-center text-sm font-medium text-gray-800">Sam</div>
                         <div class="bg-white p-2 text-center text-sm font-medium text-gray-800">Dim</div>
                     </div>
-                    
+
                     <!-- Corps du calendrier -->
                     <div class="grid grid-cols-7 gap-px bg-gray-200">
                         <!-- Semaine 1 -->
@@ -265,7 +282,7 @@
                         <div class="bg-white p-2 h-24 bg-gray-50">
                             <div class="font-medium">6</div>
                         </div>
-                        
+
                         <!-- Semaine 2 -->
                         <div class="bg-white p-2 h-24">
                             <div class="font-medium">7</div>
@@ -288,7 +305,7 @@
                         <div class="bg-white p-2 h-24 bg-gray-50">
                             <div class="font-medium">13</div>
                         </div>
-                        
+
                         <!-- Semaine 3 -->
                         <div class="bg-white p-2 h-24">
                             <div class="font-medium">14</div>
