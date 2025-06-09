@@ -3,26 +3,25 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Presence extends Model
 {
     protected $fillable = [
-        'employe_id',
+        'user_id',
         'date',
         'status',
         'heure_arrivee',
-        'heure_depart',
-        'commentaire',
+        'justification'
     ];
 
     protected $casts = [
         'date' => 'date',
         'heure_arrivee' => 'datetime',
-        'heure_depart' => 'datetime',
     ];
 
-    public function employe()
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Employe::class);
+        return $this->belongsTo(User::class);
     }
 }

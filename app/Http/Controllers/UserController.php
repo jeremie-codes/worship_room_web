@@ -3,63 +3,96 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Role;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function roles()
+    public function index()
     {
-        $roles = Role::with('users')->get();
-        return view('users.roles', compact('roles'));
+        $stats = [
+            'total' => User::count(),
+            'actifs' => User::where('status', 'actif')->count(),
+            'retraites' => User::where('status', 'retraite')->count(),
+            'autres' => User::whereNotIn('status', ['actif', 'retraite'])->count(),
+        ];
+
+        $users = User::with('service')
+            ->orderBy('name')
+            ->paginate(20);
+
+        return view('users.index', compact('users', 'stats'));
     }
 
-    public function storeRole(Request $request)
+    public function create()
     {
-        $validated = $request->validate([
-            'nom' => 'required|unique:roles',
-            'description' => 'nullable',
-            'permissions' => 'required|array',
-        ]);
-
-        Role::create($validated);
-
-        return redirect()->route('users.roles')
-            ->with('success', 'Rôle créé avec succès.');
+        $services = Service::orderBy('nom')->get();
+        return view('users.create', compact('services'));
     }
 
-    public function updateRole(Request $request, Role $role)
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'nom' => 'required|unique:roles,nom,' . $role->id,
-            'description' => 'nullable',
-            'permissions' => 'required|array',
+            'matricule' => 'required|unique:users',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'date_naissance' => 'required|date',
+            'lieu_naissance' => 'required|string|max:255',
+            'sexe' => 'required|in:M,F',
+            'adresse' => 'required|string|max:255',
+            'telephone' => 'required|string|max:20',
+            'date_engagement' => 'required|date',
+            'service_id' => 'required|exists:services,id',
+            'observations' => 'nullable|string',
         ]);
 
-        $role->update($validated);
+        $validated['password'] = Hash::make($validated['password']);
+        $validated['status'] = 'actif';
 
-        return redirect()->route('users.roles')
-            ->with('success', 'Rôle mis à jour avec succès.');
+        User::create($validated);
+
+        return redirect()->route('users.index')
+            ->with('success', 'Utilisateur enregistré avec succès');
+    }
+
+    public function edit(User $user)
+    {
+        $services = Service::orderBy('nom')->get();
+        return view('users.edit', compact('user', 'services'));
     }
 
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name' => 'required',
+            'matricule' => 'required|unique:users,matricule,' . $user->id,
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|exists:roles,id',
-            'password' => 'nullable|min:8',
-            'status' => 'required|in:active,inactive',
+            'date_naissance' => 'required|date',
+            'lieu_naissance' => 'required|string|max:255',
+            'sexe' => 'required|in:M,F',
+            'adresse' => 'required|string|max:255',
+            'telephone' => 'required|string|max:20',
+            'date_engagement' => 'required|date',
+            'status' => 'required|in:actif,retraite,malade,demission,revoque,disponibilite,detachement,mutation,reintegration,mission,decede',
+            'service_id' => 'required|exists:services,id',
+            'observations' => 'nullable|string',
         ]);
 
         if ($request->filled('password')) {
+            $request->validate(['password' => 'string|min:8|confirmed']);
             $validated['password'] = Hash::make($request->password);
         }
 
         $user->update($validated);
 
-        return redirect()->route('users.roles')
-            ->with('success', 'Utilisateur mis à jour avec succès.');
+        return redirect()->route('users.index')
+            ->with('success', 'Utilisateur mis à jour avec succès');
+    }
+
+    public function show(User $user)
+    {
+        return view('users.show', compact('user'));
     }
 }
