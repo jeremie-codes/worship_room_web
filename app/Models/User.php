@@ -2,116 +2,105 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    const ROLE_SPECTATOR = 'spectator';
+    const ROLE_BROADCASTER = 'broadcaster';
+
     protected $fillable = [
-        'matricule',
         'name',
         'email',
+        'phone',
         'password',
-        'date_naissance',
-        'lieu_naissance',
-        'sexe',
-        'adresse',
-        'telephone',
-        'date_engagement',
-        'status',
-        'service_id',
-        'observations'
+        'role',
+        'avatar',
+        'bio',
+        'website_url',
+        'is_active',
+        'account_deactivated_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'account_deactivated_at' => 'datetime',
+        'is_active' => 'boolean',
+    ];
+
+    public function streams()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'date_naissance' => 'date',
-            'date_engagement' => 'date',
-        ];
+        return $this->hasMany(Stream::class, 'broadcaster_id');
     }
 
-    public function service(): BelongsTo
+    public function videos()
     {
-        return $this->belongsTo(Service::class);
+        return $this->hasMany(Video::class, 'broadcaster_id');
     }
 
-    public function presences(): HasMany
+    public function comments()
     {
-        return $this->hasMany(Presence::class);
+        return $this->hasMany(Comment::class);
     }
 
-    public function conges(): HasMany
+    public function donations()
     {
-        return $this->hasMany(Conge::class, 'agent_id');
+        return $this->hasMany(Donation::class, 'donor_id');
     }
 
-    public function missions(): HasMany
+    public function receivedDonations()
     {
-        return $this->hasMany(Mission::class, 'agent_id');
+        return $this->hasMany(Donation::class, 'broadcaster_id');
     }
 
-    public function cotations(): HasMany
+    public function subscriptions()
     {
-        return $this->hasMany(Cotation::class, 'agent_id');
+        return $this->hasMany(Subscription::class, 'subscriber_id');
     }
 
-    public function paiements(): HasMany
+    public function subscribers()
     {
-        return $this->hasMany(Paiement::class, 'agent_id');
+        return $this->hasMany(Subscription::class, 'broadcaster_id');
     }
 
-    public function visiteurs(): HasMany
+    public function notifications()
     {
-        return $this->hasMany(Visiteur::class);
+        return $this->hasMany(Notification::class);
     }
 
-    public function courriers(): HasMany
+    public function watchHistory()
     {
-        return $this->hasMany(Courrier::class);
+        return $this->hasMany(WatchHistory::class);
     }
 
-    public function isActif(): bool
+    public function isBroadcaster()
     {
-        return $this->status === 'actif';
+        return $this->role === self::ROLE_BROADCASTER;
     }
 
-    public function getNomCompletAttribute(): string
+    public function isSpectator()
     {
-        return $this->name;
+        return $this->role === self::ROLE_SPECTATOR;
     }
 
-    public function getAncienneteAttribute(): int
+    public function getTotalDonationsAttribute()
     {
-        return $this->date_engagement ? $this->date_engagement->diffInYears(now()) : 0;
+        return $this->receivedDonations()->sum('amount');
     }
 
+    public function getSubscribersCountAttribute()
+    {
+        return $this->subscribers()->count();
+    }
 }

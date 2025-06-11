@@ -1,119 +1,71 @@
 <?php
 
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\CongeController;
-use App\Http\Controllers\MissionController;
-use App\Http\Controllers\PresenceController;
-use App\Http\Controllers\CotationController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\ArticleController;
-use App\Http\Controllers\DemandeFournitureController;
-use App\Http\Controllers\CharroiController;
-use App\Http\Controllers\VehiculeController;
-use App\Http\Controllers\ChauffeurController;
-use App\Http\Controllers\PaiementController;
-use App\Http\Controllers\CourrierController;
-use App\Http\Controllers\VisiteurController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\StreamController;
+use App\Http\Controllers\VideoController;
+use App\Http\Controllers\BroadcasterController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\DonationController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('login');
+// Public routes
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/streams', [StreamController::class, 'index'])->name('streams.index');
+Route::get('/videos', [VideoController::class, 'index'])->name('videos.index');
+Route::get('/streams/{stream}', [StreamController::class, 'show'])->name('streams.show');
+Route::get('/videos/{video}', [VideoController::class, 'show'])->name('videos.show');
+
+// Authentication routes
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
 });
 
-Route::get('/password.request', function () {
-    return view('auth.forgot-password');
-})->name('password.request');
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::delete('/account', [AuthController::class, 'deleteAccount'])->name('account.delete');
 
-require __DIR__.'/auth.php';
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
 
-    // Routes des présences
-    Route::resource('presences', PresenceController::class);
-    Route::get('presences/search', [PresenceController::class, 'search'])->name('presences.search');
+    // Subscriptions
+    Route::post('/subscribe/{broadcaster}', [SubscriptionController::class, 'subscribe'])->name('subscribe');
+    Route::delete('/unsubscribe/{broadcaster}', [SubscriptionController::class, 'unsubscribe'])->name('unsubscribe');
+    Route::get('/my-subscriptions', [SubscriptionController::class, 'mySubscriptions'])->name('subscriptions.index');
 
-    // Routes des utilisateurs (remplace agents)
-    Route::resource('users', UserController::class);
+    // Donations
+    Route::get('/donate', [DonationController::class, 'create'])->name('donations.create');
+    Route::post('/donate', [DonationController::class, 'store'])->name('donations.store');
+    Route::get('/donation-history', [DonationController::class, 'history'])->name('donations.history');
 
-    // Routes des congés
-    Route::resource('conges', CongeController::class);
-    Route::post('conges/{conge}/approuver-directeur', [CongeController::class, 'approuverDirecteur'])->name('conges.approuver.directeur');
-    Route::post('conges/{conge}/traiter-rh', [CongeController::class, 'traiterRH'])->name('conges.traiter.rh');
-    Route::post('conges/{conge}/valider-drh', [CongeController::class, 'validerDRH'])->name('conges.valider.drh');
-    Route::post('conges/{conge}/refuser', [CongeController::class, 'refuser'])->name('conges.refuser');
+    // Interactions
+    Route::post('/streams/{stream}/like', [StreamController::class, 'like'])->name('streams.like');
+    Route::post('/streams/{stream}/comment', [StreamController::class, 'comment'])->name('streams.comment');
+    Route::post('/videos/{video}/like', [VideoController::class, 'like'])->name('videos.like');
+    Route::post('/videos/{video}/comment', [VideoController::class, 'comment'])->name('videos.comment');
+});
 
-    // Routes des missions
-    Route::resource('missions', MissionController::class);
-    Route::post('missions/{mission}/demarrer', [MissionController::class, 'demarrer'])->name('missions.demarrer');
-    Route::post('missions/{mission}/terminer', [MissionController::class, 'terminer'])->name('missions.terminer');
-    Route::post('missions/{mission}/annuler', [MissionController::class, 'annuler'])->name('missions.annuler');
+// Broadcaster routes
+Route::middleware(['auth', 'broadcaster'])->prefix('broadcaster')->name('broadcaster.')->group(function () {
+    Route::get('/streams', [BroadcasterController::class, 'streams'])->name('streams');
+    Route::get('/videos', [BroadcasterController::class, 'videos'])->name('videos');
+    Route::get('/donations', [BroadcasterController::class, 'donations'])->name('donations');
+    Route::get('/profile', [BroadcasterController::class, 'profile'])->name('profile');
+    Route::put('/profile', [BroadcasterController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/deactivate', [BroadcasterController::class, 'deactivateAccount'])->name('deactivate');
 
-    // Routes des cotations
-    Route::resource('cotations', CotationController::class);
-    Route::post('cotations/{cotation}/valider', [CotationController::class, 'valider'])->name('cotations.valider');
-    Route::post('cotations/{cotation}/refuser', [CotationController::class, 'refuser'])->name('cotations.refuser');
-
-    // Routes de la logistique
-    Route::resource('articles', ArticleController::class);
-    Route::resource('demandes', DemandeFournitureController::class);
-    Route::post('demandes/{demande}/approuver', [DemandeFournitureController::class, 'approuver'])->name('demandes.approuver');
-    Route::post('demandes/{demande}/refuser', [DemandeFournitureController::class, 'refuser'])->name('demandes.refuser');
-    Route::post('demandes/{demande}/livrer', [DemandeFournitureController::class, 'livrer'])->name('demandes.livrer');
-
-    // Routes du charroi automobile
-    Route::prefix('charroi')->name('charroi.')->group(function () {
-        // Gestion des missions
-        Route::get('/', [CharroiController::class, 'index'])->name('index');
-        Route::get('/create', [CharroiController::class, 'create'])->name('create');
-        Route::post('/', [CharroiController::class, 'store'])->name('store');
-        Route::get('/{mission}', [CharroiController::class, 'show'])->name('show');
-        Route::post('/{mission}/approuver', [CharroiController::class, 'approuver'])->name('approuver');
-        Route::post('/{mission}/demarrer', [CharroiController::class, 'demarrer'])->name('demarrer');
-        Route::post('/{mission}/terminer', [CharroiController::class, 'terminer'])->name('terminer');
-        Route::post('/{mission}/annuler', [CharroiController::class, 'annuler'])->name('annuler');
-
-        // Gestion des véhicules
-        Route::resource('vehicules', VehiculeController::class);
-
-        // Gestion des chauffeurs
-        Route::resource('chauffeurs', ChauffeurController::class);
-    });
-
-    // Routes des paiements
-    Route::resource('paiements', PaiementController::class);
-    Route::post('paiements/{paiement}/valider', [PaiementController::class, 'valider'])->name('paiements.valider');
-    Route::post('paiements/{paiement}/payer', [PaiementController::class, 'payer'])->name('paiements.payer');
-    Route::post('paiements/{paiement}/annuler', [PaiementController::class, 'annuler'])->name('paiements.annuler');
-    Route::get('paiements/{paiement}/bulletin', [PaiementController::class, 'bulletinPaie'])->name('paiements.bulletin');
-    Route::post('paiements/generer-masse', [PaiementController::class, 'genererPaiementsMasse'])->name('paiements.generer-masse');
-
-    // Routes des courriers
-    Route::resource('courriers', CourrierController::class);
-    Route::get('courriers-tableau-bord', [CourrierController::class, 'tableau_bord'])->name('courriers.tableau_bord');
-    Route::get('courriers-recherche', [CourrierController::class, 'recherche'])->name('courriers.recherche');
-    Route::post('courriers/{courrier}/changer-status', [CourrierController::class, 'changerStatus'])->name('courriers.changer-status');
-    Route::post('courriers/{courrier}/transmettre', [CourrierController::class, 'transmettre'])->name('courriers.transmettre');
-    Route::post('courriers/{courrier}/documents', [CourrierController::class, 'ajouterDocument'])->name('courriers.documents.ajouter');
-    Route::get('documents/{document}/telecharger', [CourrierController::class, 'telechargerDocument'])->name('courriers.documents.telecharger');
-    Route::delete('documents/{document}', [CourrierController::class, 'supprimerDocument'])->name('courriers.documents.supprimer');
-
-    // Routes des visiteurs
-    Route::resource('visiteurs', VisiteurController::class);
-    Route::post('visiteurs/{visiteur}/marquer-sortie', [VisiteurController::class, 'marquerSortie'])->name('visiteurs.marquer-sortie');
-    Route::get('visiteurs-recherche', [VisiteurController::class, 'recherche'])->name('visiteurs.recherche');
-    Route::get('visiteurs-rapport', [VisiteurController::class, 'rapport'])->name('visiteurs.rapport');
-    Route::get('visiteurs/{visiteur}/badge', [VisiteurController::class, 'badge'])->name('visiteurs.badge');
-
-    // Routes d'administration
-    // Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
-        // Gestion des rôles
-    Route::resource('roles', RoleController::class);
-
-    // Gestion des services
-    Route::resource('services', ServiceController::class);
-    // });
+    // Stream management
+    Route::get('/streams/create', [StreamController::class, 'create'])->name('streams.create');
+    Route::post('/streams', [StreamController::class, 'store'])->name('streams.store');
 });
